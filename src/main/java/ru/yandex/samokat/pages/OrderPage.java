@@ -6,6 +6,7 @@ import java.time.Duration;
 
 public class OrderPage {
     private final WebDriver driver;
+    private final WebDriverWait wait;
 
     // ПЕРВАЯ ФОРМА
     private final By nameField = By.xpath(".//input[@placeholder='* Имя']");
@@ -14,7 +15,6 @@ public class OrderPage {
     private final By metroField = By.xpath(".//input[@placeholder='* Станция метро']");
     private final By phoneField = By.xpath(".//input[@placeholder='* Телефон: на него позвонит курьер']");
     private final By nextButton = By.xpath(".//button[text()='Далее']");
-
 
     private final By firstMetroOption = By.xpath(".//div[contains(@class, 'select-search__select')]//button[1]");
 
@@ -40,48 +40,36 @@ public class OrderPage {
 
     public OrderPage(WebDriver driver) {
         this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     public void fillFirstForm(String name, String surname, String address, String metro, String phone) {
-
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.visibilityOfElementLocated(nameField));
-
+        wait.until(ExpectedConditions.visibilityOfElementLocated(nameField));
 
         driver.findElement(nameField).sendKeys(name);
-
-
         driver.findElement(surnameField).sendKeys(surname);
-
-
         driver.findElement(addressField).sendKeys(address);
-
 
         driver.findElement(metroField).click();
         driver.findElement(metroField).sendKeys(metro);
 
-
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.elementToBeClickable(firstMetroOption))
-                .click();
-
+        wait.until(ExpectedConditions.elementToBeClickable(firstMetroOption)).click();
 
         driver.findElement(phoneField).sendKeys(phone);
     }
 
     public void clickNextButton() {
-        driver.findElement(nextButton).click();
+        wait.until(ExpectedConditions.elementToBeClickable(nextButton)).click();
     }
 
     public void fillSecondForm(String date, String comment, boolean isBlack, boolean isGrey) {
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.visibilityOfElementLocated(dateField));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(dateField));
 
         driver.findElement(dateField).sendKeys(date);
         driver.findElement(dateField).sendKeys(Keys.ENTER);
 
         driver.findElement(rentalField).click();
-        driver.findElement(rentalOption).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(rentalOption)).click();
 
         if (isBlack) driver.findElement(blackColor).click();
         if (isGrey) driver.findElement(greyColor).click();
@@ -90,19 +78,16 @@ public class OrderPage {
     }
 
     public void clickOrderButton() {
-        driver.findElement(orderButton).click();
+        wait.until(ExpectedConditions.elementToBeClickable(orderButton)).click();
     }
 
     public void confirmOrder() {
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.elementToBeClickable(confirmButton));
-        driver.findElement(confirmButton).click();
+        wait.until(ExpectedConditions.elementToBeClickable(confirmButton)).click();
     }
 
     public boolean isOrderSuccess() {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(5))
-                    .until(ExpectedConditions.visibilityOfElementLocated(successMessage));
+            wait.until(ExpectedConditions.visibilityOfElementLocated(successMessage));
             return true;
         } catch (TimeoutException e) {
             System.out.println("✗ БАГ! Заказ не оформился в Chrome");
@@ -111,15 +96,13 @@ public class OrderPage {
     }
 
     public void clickNextWithoutFilling() {
-        driver.findElement(nextButton).click();
+        wait.until(ExpectedConditions.elementToBeClickable(nextButton)).click();
     }
 
     // Методы проверки ошибок
     public boolean isNameErrorDisplayed() {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(3))
-                    .until(ExpectedConditions.visibilityOfElementLocated(nameError));
-            return true;
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(nameError)).isDisplayed();
         } catch (Exception e) {
             return false;
         }
@@ -127,21 +110,23 @@ public class OrderPage {
 
     public boolean isSurnameErrorDisplayed() {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(3))
-                    .until(ExpectedConditions.visibilityOfElementLocated(surnameError));
-            return true;
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(surnameError)).isDisplayed();
         } catch (Exception e) {
             return false;
         }
     }
 
-
+    public boolean isAddressErrorDisplayed() {
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(addressError)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     public boolean isMetroErrorDisplayed() {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(3))
-                    .until(ExpectedConditions.visibilityOfElementLocated(metroError));
-            return true;
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(metroError)).isDisplayed();
         } catch (Exception e) {
             return false;
         }
@@ -149,9 +134,7 @@ public class OrderPage {
 
     public boolean isPhoneErrorDisplayed() {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(3))
-                    .until(ExpectedConditions.visibilityOfElementLocated(phoneError));
-            return true;
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(phoneError)).isDisplayed();
         } catch (Exception e) {
             return false;
         }
@@ -160,7 +143,8 @@ public class OrderPage {
     public void debugAllErrors() {
         try {
             System.out.println("ПОДРОБНАЯ ОТЛАДКА ВСЕХ ОШИБОК");
-            Thread.sleep(2000);
+
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'Input_ErrorMessage')]")));
 
             var errorMessages = driver.findElements(By.xpath("//div[contains(@class, 'Input_ErrorMessage')]"));
             System.out.println("1. Найдено элементов с классом Input_ErrorMessage: " + errorMessages.size());

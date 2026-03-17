@@ -31,5 +31,4 @@ public class NavigationTest {
         mainPage.clickSamokatLogo();
         assertEquals("https://qa-scooter.praktikum-services.ru/", driver.getCurrentUrl());
     }
-
 }
